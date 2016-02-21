@@ -1,0 +1,14 @@
+.idea/
+gradle/
+gradlew
+gradlew.bat
+local.properties
+*.iml
+.gradle/
+build/
+
+!library-main/
+!settings.gradle
+!build.gradle
+!gradle.properties
+!.gitignore
