@@ -1,4 +1,4 @@
-package com.yunzhongtianjing.wudaozi.common;
+package com.yunzhongtianjing.origin.common;
 
 import static android.opengl.GLES20.*;
 

@@ -1,9 +1,6 @@
-package com.yunzhongtianjing.wudaozi.buffer;
+package com.yunzhongtianjing.origin.buffer;
 
-import android.graphics.Bitmap;
-import android.opengl.GLES20;
-
-import com.yunzhongtianjing.wudaozi.common.ColorFormat;
+import com.yunzhongtianjing.origin.common.ColorFormat;
 
 import static android.opengl.GLES20.*;
 
@@ -17,6 +14,18 @@ public abstract class RenderBuffer {
 
     private RenderBuffer(int handle) {
         this.mHandle = handle;
+    }
+
+    public int getHeight() {
+        final int[] results = new int[1];
+        glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, results, 0);
+        return results[0];
+    }
+
+    public int getWidth() {
+        final int[] results = new int[1];
+        glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, results, 0);
+        return results[0];
     }
 
     public void bind() {
@@ -70,7 +79,6 @@ public abstract class RenderBuffer {
             final int[] buffers = new int[1];
             glGenRenderbuffers(1, buffers, 0);
             glBindRenderbuffer(GL_RENDERBUFFER, buffers[0]);
-            //Since GL_STENCIL_INDEX is deprecated,we won't provide it again,only GL_STENCIL_INDEX8 provided
             glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
             return new StencilBuffer(buffers[0]);
         }

@@ -1,4 +1,4 @@
-package com.yunzhongtianjing.wudaozi;
+package com.yunzhongtianjing.origin;
 
 import org.junit.Test;
 

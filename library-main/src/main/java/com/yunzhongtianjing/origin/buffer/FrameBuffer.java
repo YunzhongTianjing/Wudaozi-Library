@@ -1,6 +1,4 @@
-package com.yunzhongtianjing.wudaozi.buffer;
-
-import android.opengl.GLES20;
+package com.yunzhongtianjing.origin.buffer;
 
 import static android.opengl.GLES20.*;
 
