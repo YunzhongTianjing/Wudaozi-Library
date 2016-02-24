@@ -8,7 +8,7 @@ public abstract class OpenGLObject {
     public OpenGLObject(){
         mHandle = create();
     }
-    public abstract int create();
+    protected abstract int create();
     public abstract void destroy();
     public abstract void bind();
     public abstract void unbind();

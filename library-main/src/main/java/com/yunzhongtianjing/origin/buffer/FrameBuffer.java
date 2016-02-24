@@ -13,7 +13,7 @@ public class FrameBuffer extends OpenGLObject{
     private static FrameBuffer mCurrentFrameBuffer;
 
     @Override
-    public int create() {
+    protected int create() {
         final int[] handles = new int[1];
         glGenFramebuffers(1, handles, 0);
         return handles[0];
