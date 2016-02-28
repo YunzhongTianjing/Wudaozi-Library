@@ -1,4 +1,4 @@
-package com.yunzhongtianjing.origin.buffer;
+package com.yunzhongtianjing.origin.gl20.buffer;
 
 import com.yunzhongtianjing.origin.common.ColorFormat;
 

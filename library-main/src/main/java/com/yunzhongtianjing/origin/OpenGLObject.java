@@ -6,10 +6,10 @@ package com.yunzhongtianjing.origin;
 public abstract class OpenGLObject {
     protected final int mHandle;
     public OpenGLObject(){
-        mHandle = create();
+        mHandle = generate();
     }
-    protected abstract int create();
-    public abstract void destroy();
+    protected abstract int generate();
+    public abstract void delete();
     public abstract void bind();
     public abstract void unbind();
 }

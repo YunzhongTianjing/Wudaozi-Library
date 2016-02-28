@@ -1,4 +1,4 @@
-package com.yunzhongtianjing.origin.buffer;
+package com.yunzhongtianjing.origin.gl20.buffer;
 
 import com.yunzhongtianjing.origin.OpenGLObject;
 
@@ -13,14 +13,14 @@ public class FrameBuffer extends OpenGLObject{
     private static FrameBuffer mCurrentFrameBuffer;
 
     @Override
-    protected int create() {
+    protected int generate() {
         final int[] handles = new int[1];
         glGenFramebuffers(1, handles, 0);
         return handles[0];
     }
 
     @Override
-    public void destroy() {
+    public void delete() {
         glDeleteFramebuffers(0,new int[]{mHandle},0);
     }
 
