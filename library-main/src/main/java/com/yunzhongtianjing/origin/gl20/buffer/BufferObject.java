@@ -2,8 +2,8 @@ package com.yunzhongtianjing.origin.gl20.buffer;
 
 
 import com.yunzhongtianjing.exception.WudaoziException;
+import com.yunzhongtianjing.log.WLog;
 import com.yunzhongtianjing.origin.OpenGLObject;
-import com.yunzhongtianjing.origin.common.Utils;
 import com.yunzhongtianjing.origin.gl20.DeviceSupport;
 
 import java.nio.Buffer;
@@ -17,11 +17,61 @@ import static android.opengl.GLES20.*;
  * Created by yunzhongtianjing on 16/2/27.
  */
 public class BufferObject extends OpenGLObject {
-    private static final int BYTES_PER_SHORT = Short.SIZE / Byte.SIZE;
-    private static final int BYTES_PER_FLOAT = Float.SIZE / Byte.SIZE;
-    private static final int BYTES_PER_INT = Integer.SIZE / Byte.SIZE;
+    private enum BufferElementType {
+        SHORT(BufferElementType.BYTES_PER_SHORT),
+        INT(BufferElementType.BYTES_PER_INT),
+        FLOAT(BufferElementType.BYTES_PER_FLOAT);
+
+        private static final int BYTES_PER_SHORT = Short.SIZE / Byte.SIZE;
+        private static final int BYTES_PER_INT = Integer.SIZE / Byte.SIZE;
+        private static final int BYTES_PER_FLOAT = Float.SIZE / Byte.SIZE;
+        final int byteSize;
+
+        BufferElementType(int byteSize) {
+            this.byteSize = byteSize;
+        }
+
+        static BufferElementType getByBuffer(Buffer buffer) {
+            if (buffer instanceof IntBuffer) {
+                return INT;
+            } else if (buffer instanceof ShortBuffer) {
+                return SHORT;
+            } else if (buffer instanceof FloatBuffer) {
+                return FLOAT;
+            } else {
+                throw new WudaoziException(String.format("Parameter buffer{%s} is not valid", buffer));
+            }
+        }
+
+    }
+
+    private enum Usage {
+        /**
+         * The data store contents will be specified once by the application,
+         * and used many times as the source for GL drawing commands
+         */
+        STATIC_DRAW(GL_STATIC_DRAW),
+        /**
+         * The data store contents will be respecified repeatedly by the application,
+         * and used many times as the source for GL drawing commands
+         */
+        DYNAMIC_DRAW(GL_DYNAMIC_DRAW),
+        /**
+         * The data store contents will be specified once by the application,
+         * and used at most a few times as the source of a GL drawing command.
+         */
+        STREAM_DRAW(GL_STREAM_DRAW);
+        private final int glValue;
+
+        Usage(int glValue) {
+            this.glValue = glValue;
+        }
+    }
 
     protected final int mBoundPoint;
+
+    private BufferElementType mElementType;
+    private Usage mUsage;
 
     private BufferObject(int boundPoint) {
         super();
@@ -51,9 +101,27 @@ public class BufferObject extends OpenGLObject {
         glBindBuffer(mBoundPoint, 0);
     }
 
-    void setData(Buffer data, int byteSize, int usage) {
+    void superSetData(Buffer data, Usage usage) {
+        this.mElementType = BufferElementType.getByBuffer(data);
+        this.mUsage = usage;
         bind();
-        glBufferData(mBoundPoint, data.flip().limit() * byteSize, data, usage);
+        glBufferData(mBoundPoint, data.flip().limit() * mElementType.byteSize, data, usage.glValue);
+        unbind();
+    }
+
+    void superModifyData(Buffer newData, int start, int end) {
+        final BufferElementType newElementType = BufferElementType.getByBuffer(newData);
+        if (newElementType != mElementType)
+            throw new WudaoziException(String.format("New data type{%s} mismatches origin data type{%s}!",
+                    newElementType.name(), mElementType.name()));
+
+        if (Usage.STATIC_DRAW == mUsage || Usage.STREAM_DRAW == mUsage)
+            WLog.w("The buffer is used for %s,for efficiency,its content should be specified only once and shouldn't be modified",
+                    mUsage.name());
+        start = start * mElementType.byteSize;
+        end = end * mElementType.byteSize;
+        bind();
+        glBufferSubData(mBoundPoint, start, end, newData);
         unbind();
     }
 
@@ -64,16 +132,20 @@ public class BufferObject extends OpenGLObject {
         }
 
         /**
-         * @param usage Optimisation hint for OpenGL,not so reliable
+         * @param usage Optimisation hint for OpenGL(may not so reliable),see
+         *              {@link com.yunzhongtianjing.origin.gl20.buffer.BufferObject.Usage}
          */
-        public void setData(FloatBuffer data, int usage) {
-            setData(data, BYTES_PER_FLOAT, usage);
+        public void setData(FloatBuffer data, Usage usage) {
+            superSetData(data, usage);
         }
 
         public void setData(FloatBuffer data) {
-            setData(data, GL_STATIC_DRAW);
+            setData(data, Usage.STATIC_DRAW);
         }
 
+        public void modifyData(FloatBuffer newData, int start, int end) {
+            superModifyData(newData, start, end);
+        }
     }
 
     public static class IndexBufferObject extends BufferObject {
@@ -82,28 +154,36 @@ public class BufferObject extends OpenGLObject {
         }
 
         /**
-         * @param usage Optimisation hint for OpenGL,not so reliable
+         * @param usage Optimisation hint for OpenGL(may not so reliable),see
+         *              {@link com.yunzhongtianjing.origin.gl20.buffer.BufferObject.Usage}
          */
-        public void setData(ShortBuffer data, int usage) {
-            setData(data, BYTES_PER_SHORT, usage);
+        public void setData(ShortBuffer data, Usage usage) {
+            superSetData(data, usage);
         }
 
         public void setData(ShortBuffer data) {
-            setData(data, GL_STATIC_DRAW);
+            setData(data, Usage.STATIC_DRAW);
         }
 
+
         /**
-         * @param usage Optimisation hint for OpenGL,not so reliable
+         * @param usage Optimisation hint for OpenGL(may not so reliable),see
+         *              {@link com.yunzhongtianjing.origin.gl20.buffer.BufferObject.Usage}Ï
          */
-        public void setData(IntBuffer data, int usage) {
-            if (!DeviceSupport.getInstance().supportIntIBO)
+        public void setData(IntBuffer data, Usage usage) {
+            if (!isSupportIntegerBuffer())
                 throw new WudaoziException("Integer Buffer for IBO is not supported with this device");
-            setData(data, BYTES_PER_INT, usage);
+            superSetData(data, usage);
         }
 
         public void setData(IntBuffer data) {
-            setData(data, GL_STATIC_DRAW);
+            setData(data, Usage.STATIC_DRAW);
         }
+
+        public static boolean isSupportIntegerBuffer() {
+            return DeviceSupport.getInstance().supportIntIBO;
+        }
+
     }
 
 }
