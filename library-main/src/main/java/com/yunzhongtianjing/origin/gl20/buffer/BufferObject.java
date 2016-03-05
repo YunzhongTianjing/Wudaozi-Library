@@ -165,6 +165,10 @@ public class BufferObject extends OpenGLObject {
             setData(data, Usage.STATIC_DRAW);
         }
 
+        public void modifyData(ShortBuffer newData, int start, int end) {
+            superModifyData(newData, start, end);
+        }
+
 
         /**
          * @param usage Optimisation hint for OpenGL(may not so reliable),see
@@ -180,10 +184,13 @@ public class BufferObject extends OpenGLObject {
             setData(data, Usage.STATIC_DRAW);
         }
 
+        public void modifyData(IntBuffer newData, int start, int end) {
+            superModifyData(newData, start, end);
+        }
+
         public static boolean isSupportIntegerBuffer() {
             return DeviceSupport.getInstance().supportIntIBO;
         }
-
     }
 
 }
