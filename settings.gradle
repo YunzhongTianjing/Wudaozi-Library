@@ -1,1 +1,1 @@
-include ':library-main'
+include ':library-main', ':library-coder'

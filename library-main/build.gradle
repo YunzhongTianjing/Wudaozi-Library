@@ -22,11 +22,28 @@ android {
     }
 }
 
+configurations{
+    compile.extendsFrom coder
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    coder project(':library-coder')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
 }
+
+task generateWudaoziCode(type: JavaCompile, group: 'build', description: 'Generates the QueryDSL query types') {
+    options.compilerArgs = [
+            "-proc:only",
+            "-processor", "com.wudaozi.coder.UniformClassCoder"
+    ]
+}
+
+preBuild {
+    dependsOn generateWudaoziCode
+}
+
 
 uploadArchives {
     repositories {
