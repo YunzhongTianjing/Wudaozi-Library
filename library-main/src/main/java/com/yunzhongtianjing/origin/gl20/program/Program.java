@@ -1,7 +1,5 @@
 package com.yunzhongtianjing.origin.gl20.program;
 
-import android.opengl.GLES20;
-
 import com.yunzhongtianjing.exception.WudaoziException;
 
 import static android.opengl.GLES20.*;
@@ -43,31 +41,30 @@ public class Program {
         return handle;
     }
 
-    private final int[] mReturnValues = new int[1];
-
     boolean isLinked() {
-        glGetProgramiv(mHandle, GL_ACTIVE_ATTRIBUTES, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+        return getProgramParam(GL_ACTIVE_ATTRIBUTES) == GL_TRUE;
     }
 
     boolean isValid() {
-        glGetProgramiv(mHandle, GL_VALIDATE_STATUS, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+        return getProgramParam(GL_VALIDATE_STATUS) == GL_TRUE;
     }
 
     boolean isDeleted() {
-        glGetProgramiv(mHandle, GL_DELETE_STATUS, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+        return getProgramParam(GL_DELETE_STATUS) == GL_TRUE;
     }
 
     private int getUniformValueSize() {
-        glGetProgramiv(mHandle, GL_ACTIVE_UNIFORMS, mReturnValues, 0);
-        return mReturnValues[0];
+        return getProgramParam(GL_ACTIVE_UNIFORMS);
     }
 
     private int getAttributeValueSize() {
-        glGetProgramiv(mHandle, GL_ACTIVE_ATTRIBUTES, mReturnValues, 0);
-        return mReturnValues[0];
+        return getProgramParam(GL_ACTIVE_ATTRIBUTES);
     }
 
+    private final int[] mReturnValue = new int[1];
+
+    private int getProgramParam(int paramType) {
+        glGetProgramiv(mHandle, paramType, mReturnValue, 0);
+        return mReturnValue[0];
+    }
 }
