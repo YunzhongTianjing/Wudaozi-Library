@@ -21,4 +21,5 @@ public @interface UniformMatrixClassCoder {
     //glUniformMatrix{2|3|4}fv
 
     int dimensionality();
+
 }

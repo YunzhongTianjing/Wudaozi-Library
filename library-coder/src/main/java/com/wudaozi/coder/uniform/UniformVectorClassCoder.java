@@ -63,4 +63,5 @@ public @interface UniformVectorClassCoder {
     int componentSize();
 
     ComponentType componentType();
+
 }
