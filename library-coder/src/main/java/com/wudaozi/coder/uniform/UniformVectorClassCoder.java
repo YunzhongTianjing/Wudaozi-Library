@@ -64,4 +64,6 @@ public @interface UniformVectorClassCoder {
 
     ComponentType componentType();
 
+    String classNameForGeneratedClass() default "";
+
 }

@@ -22,4 +22,5 @@ public @interface UniformMatrixClassCoder {
 
     int dimensionality();
 
+    String classNameForGeneratedClass() default "";
 }

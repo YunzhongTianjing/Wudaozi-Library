@@ -16,6 +16,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
@@ -53,15 +54,21 @@ public class WudaoziAPICoderProcessor extends AbstractProcessor {
 
     private boolean dealElementsWithUniformVectorClassCoder(
             Element element, RoundEnvironment roundEnv) {
-        final String log = String.format("VectorCoder.kind{%s}.name{%s}.outerElement{%s}",
+        final String log = String.format("VectorCoder.kind{%s}.name{%s}.package{%s}",
                 element.getKind(),
                 element.getSimpleName(),
-                element.getEnclosingElement()
+                getPackage(element)
         );
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, log, element);
 
 
         return true;
+    }
+
+    private PackageElement getPackage(Element element) {
+        if (element.getKind() == ElementKind.PACKAGE)
+            return (PackageElement) element;
+        return getPackage(element.getEnclosingElement());
     }
 
     private boolean checkElementLegality(Element element) {
