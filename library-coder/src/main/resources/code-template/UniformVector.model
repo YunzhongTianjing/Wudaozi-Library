@@ -35,11 +35,7 @@ public final class $className extends Uniform {
     #if ('FLOAT' == $componentType || 'BOOL' == $componentType)
 
     public void set(float[] values){
-        final int rest = values.length % $componentSize;
-        if(0 != rest)
-            throw new WudaoziException("");
-        final int arraySizeByElement = values.length /  $componentSize;
-        if(arraySizeByElement != $sizeIfArray)
+        if(values.length != $sizeIfArray * $componentSize)
             throw new WudaoziException("");
 
         glUniform${componentSize}fv($handle, $sizeIfArray, values, 0);
@@ -49,11 +45,7 @@ public final class $className extends Uniform {
     #if ('INTEGER' == $componentType || 'BOOL' == $componentType)
 
     public void set(int[] values){
-        final int rest = values.length % $componentSize;
-        if(0 != rest)
-            throw new WudaoziException("");
-        final int arraySizeByElement = values.length /  $componentSize;
-        if(arraySizeByElement != $sizeIfArray)
+        if(values.length != $sizeIfArray * $componentSize)
             throw new WudaoziException("");
 
         glUniform${componentSize}iv($handle, $sizeIfArray, values, 0);

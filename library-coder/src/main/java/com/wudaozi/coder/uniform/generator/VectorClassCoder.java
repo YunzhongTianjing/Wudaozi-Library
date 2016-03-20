@@ -23,57 +23,32 @@ import javax.tools.JavaFileObject;
 /**
  * Created by yunzhongtianjing on 16/3/20.
  */
-public class VectorClassCoder {
-    private final String mClassName;
-    private final int mComponentSize;
-    private final ComponentType mComponentType;
-    private final ProcessingEnvironment mProcessEnv;
-    private String mHandleFieldName;
-    private String mSizeIfArrayFieldName;
+public class VectorClassCoder extends AUniformCoder {
 
-    public VectorClassCoder(String canonicalClassName, ComponentType componentType, int componentSize, ProcessingEnvironment processingEnv) {
-        this.mClassName = canonicalClassName;
+    private final ComponentType mComponentType;
+    private final int mComponentSize;
+    private final boolean mSingleValue;
+
+    public VectorClassCoder(String canonicalClassName, ComponentType componentType, int componentSize, boolean isArray) {
+        super(canonicalClassName);
         this.mComponentType = componentType;
         this.mComponentSize = componentSize;
-        this.mProcessEnv = processingEnv;
+        this.mSingleValue = !isArray;
     }
 
-    public VectorClassCoder initialize(String handleFieldName, String sizeIfArrayFieldName) {
-        mHandleFieldName = handleFieldName;
-        mSizeIfArrayFieldName = sizeIfArrayFieldName;
-        return this;
+    @Override
+    void mapTemplate(VelocityContext mapper) {
+        mapper.put("packageName", packageName);
+        mapper.put("className", className);
+        mapper.put("singleValue", mSingleValue);
+        mapper.put("componentType", mComponentType.name());
+        mapper.put("componentSize", mComponentSize);
+        mapper.put("handle", mHandleFieldName);
+        mapper.put("sizeIfArray", mSizeIfArrayFieldName);
     }
 
-    public void generate() {
-        final VelocityEngine engine = new VelocityEngine();
-        engine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
-        engine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        engine.init();
-
-        final Template template = engine.getTemplate("code-template/Uniform.model");
-        final VelocityContext context = new VelocityContext();
-
-        final int divider = mClassName.lastIndexOf('.');
-        context.put("packageName", mClassName.substring(0, divider));
-        context.put("className", mClassName.substring(divider + 1));
-        context.put("singleValue", true);
-        context.put("componentType", mComponentType.name());
-        context.put("componentSize", mComponentSize);
-        context.put("handle", mHandleFieldName);
-        context.put("sizeIfArray", mSizeIfArrayFieldName);
-
-//        final StringWriter writer = new StringWriter();
-//        template.merge(context, writer);
-
-//        mProcessEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "FYY:" + writer.toString());
-        try {
-            final JavaFileObject sourceFile = mProcessEnv.getFiler().createSourceFile(mClassName);
-            final Writer writer = sourceFile.openWriter();
-            template.merge(context, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-//        mProcessEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,"FYY:"+ );
+    @Override
+    String getTemplatePath() {
+        return "code-template/UniformVector.model";
     }
 }

@@ -1,0 +1,17 @@
+package $packageName;
+
+import static android.opengl.GLES20.*;
+
+import com.wudaozi.exception.WudaoziException;
+
+public class $className extends Uniform {
+    protected $className(String name, int handle, int sizeIfArray) {
+        super(name, handle, sizeIfArray);
+    }
+
+    public void set(float[] value) {
+        if ($dimensionality * $dimensionality * $sizeIfArray!= value.length)
+            throw new WudaoziException("");
+        glUniformMatrix${dimensionality}fv($handle, $sizeIfArray, false, value, 0);
+    }
+}

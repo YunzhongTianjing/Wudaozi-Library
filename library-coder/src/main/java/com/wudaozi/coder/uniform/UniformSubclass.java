@@ -2,6 +2,7 @@ package com.wudaozi.coder.uniform;
 
 import com.wudaozi.coder.ComponentType;
 import com.wudaozi.coder.Handle;
+import com.wudaozi.coder.uniform.generator.AUniformCoder;
 import com.wudaozi.coder.uniform.generator.MatrixClassCoder;
 import com.wudaozi.coder.uniform.generator.VectorClassCoder;
 
@@ -40,7 +41,6 @@ public class UniformSubclass {
 
         int dimensionality();
 
-        String classNameForGeneratedClass() default "";
     }
 
     /**
@@ -100,20 +100,22 @@ public class UniformSubclass {
 
     public static void generate(ProcessingEnvironment processingEnv, Element superclass) {
         final List<? extends Element> innerElements = superclass.getEnclosedElements();
-        final List<VectorClassCoder> subclassVectors = new ArrayList<>();
-        final List<MatrixClassCoder> subclassMatrices = new ArrayList<>();
+        final List<AUniformCoder> subclassCoder = new ArrayList<>();
         String handleFieldName = null;
         String sizeIfArrayFieldName = null;
         for (Element element : innerElements) {
             final UniformSubclass.Vector vector = element.getAnnotation(UniformSubclass.Vector.class);
             if (null != vector) {
                 final String subclassCanonicalName = ((VariableElement) element).getConstantValue().toString();
-                subclassVectors.add(new VectorClassCoder(subclassCanonicalName,
-                        vector.componentType(), vector.componentSize(), processingEnv));
+                subclassCoder.add(new VectorClassCoder(subclassCanonicalName,
+                        vector.componentType(), vector.componentSize(),false));
+                subclassCoder.add(new VectorClassCoder(subclassCanonicalName+"Array",
+                        vector.componentType(), vector.componentSize(),true));
             }
             final UniformSubclass.Matrix matrix = element.getAnnotation(UniformSubclass.Matrix.class);
-            if (null != matrix) {//TODO
-                subclassMatrices.add(new MatrixClassCoder());
+            if (null != matrix) {
+                final String subclassCanonicalName = ((VariableElement) element).getConstantValue().toString();
+                subclassCoder.add(new MatrixClassCoder(subclassCanonicalName, matrix.dimensionality()));
             }
             final Handle handle = element.getAnnotation(Handle.class);
             handleFieldName = null == handle ? handleFieldName : element.getSimpleName().toString();
@@ -121,8 +123,8 @@ public class UniformSubclass {
             sizeIfArrayFieldName = null == sizeIfArray ? sizeIfArrayFieldName : element.getSimpleName().toString();
         }
 
-        for (VectorClassCoder coder : subclassVectors)
-            coder.initialize(handleFieldName,sizeIfArrayFieldName).generate();
+        for (AUniformCoder coder : subclassCoder)
+            coder.initialize(handleFieldName, sizeIfArrayFieldName).generate(processingEnv);
     }
 
 }
