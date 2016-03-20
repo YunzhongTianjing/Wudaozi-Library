@@ -1,0 +1,63 @@
+package $packageName;
+
+import com.wudaozi.exception.WudaoziException;
+
+import static android.opengl.GLES20.*;
+
+public final class $className extends Uniform {
+    protected $className(String name, int handle, int sizeIfArray) {
+        super(name, handle, sizeIfArray);
+    }
+
+    #if ($singleValue)
+    ## Generate this API only for single value
+
+    #if ('FLOAT' == $componentType || 'BOOL' == $componentType)
+
+    public void set(#foreach($index in [1..$componentSize]) float value$index #if ($componentSize != $index) , #end #end){
+        glUniform${componentSize}f($handle,
+        #foreach($index in [1..$componentSize]) value${index} #if ($componentSize != $index) , #end #end);
+    }
+    #end
+
+    #if ('INTEGER' == $componentType || 'BOOL' == $componentType)
+
+    public void set(#foreach($index in [1..$componentSize]) int value$index #if ($componentSize != $index) , #end #end){
+        glUniform${componentSize}i($handle,
+        #foreach($index in [1..$componentSize]) value${index} #if ($componentSize != $index) , #end #end);
+    }
+    #end
+
+    #end
+
+    ## --------------------------
+
+    #if ('FLOAT' == $componentType || 'BOOL' == $componentType)
+
+    public void set(float[] values){
+        final int rest = values.length % $componentSize;
+        if(0 != rest)
+            throw new WudaoziException("");
+        final int arraySizeByElement = values.length /  $componentSize;
+        if(arraySizeByElement != $sizeIfArray)
+            throw new WudaoziException("");
+
+        glUniform${componentSize}fv($handle, $sizeIfArray, values, 0);
+    }
+    #end
+
+    #if ('INTEGER' == $componentType || 'BOOL' == $componentType)
+
+    public void set(int[] values){
+        final int rest = values.length % $componentSize;
+        if(0 != rest)
+            throw new WudaoziException("");
+        final int arraySizeByElement = values.length /  $componentSize;
+        if(arraySizeByElement != $sizeIfArray)
+            throw new WudaoziException("");
+
+        glUniform${componentSize}iv($handle, $sizeIfArray, values, 0);
+    }
+    #end
+
+}

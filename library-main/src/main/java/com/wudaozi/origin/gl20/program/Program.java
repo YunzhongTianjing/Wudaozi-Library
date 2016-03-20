@@ -38,29 +38,6 @@ public class Program {
             final int size = sizeValue[0];
             final int type = typeValue[0];
             mUniforms.put(name, Uniform.create(name, location, size, type));
-            switch (type) {
-                case GL_FLOAT:
-                    // ...
-                    break;
-                case GL_FLOAT_VEC2:
-                    // ...
-                    break;
-                case GL_FLOAT_VEC3:
-                    // ...
-                    break;
-                case GL_FLOAT_VEC4:
-                    // ...
-                    break;
-
-                case GL_INT:
-                    // ...
-                    break;
-                // ... Check for all the types ...
-
-                default:
-                    // Unknown type
-                    break;
-            }
         }
         return null;
     }

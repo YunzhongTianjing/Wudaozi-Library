@@ -176,7 +176,7 @@ public class BufferObject extends OpenGLObject {
          */
         public void setData(IntBuffer data, Usage usage) {
             if (!isSupportIntegerBuffer())
-                throw new WudaoziException("Integer Buffer for IBO is not supported with this device");
+                throw new WudaoziException("INTEGER Buffer for IBO is not supported with this device");
             superSetData(data, usage);
         }
 

@@ -6,6 +6,7 @@ local.properties
 *.iml
 .gradle/
 build/
+.DS_Store
 
 !library-main/
 !settings.gradle

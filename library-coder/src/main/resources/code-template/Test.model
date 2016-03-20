@@ -1,0 +1,12 @@
+$packageName is hahaha!
+
+
+public void set(float[] values){
+        final int rest = values.length % $componentSize/*component size*/;
+        if(0 != rest)
+            throw new WudaoziException("");
+        final int arraySizeByElement = values.length /  $componentSize/*component size*/;
+        if(arraySizeByElement != mSizeIfArray)
+            throw new WudaoziException("");
+        glUniform3fv($handle, mSizeIfArray, values, 0);
+    }
