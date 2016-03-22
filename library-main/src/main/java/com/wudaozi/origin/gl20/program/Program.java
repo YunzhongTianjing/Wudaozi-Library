@@ -17,6 +17,8 @@ public class Program {
     private int mHandle;
     private Map<String, Uniform> mUniforms;
 
+    private Map<String, Attribute> mAttributes;
+
     public Program(String vertexShaderCode, String fragmentShaderCode) {
         this.mVertexShader = new Shader.VertexShader(vertexShaderCode);
         this.mFragmentShader = new Shader.FragmentShader(fragmentShaderCode);
@@ -25,6 +27,22 @@ public class Program {
     public void initialize() {
         mHandle = getHandle();
         mUniforms = createUniforms();
+        mAttributes = createAttributes();
+    }
+
+    private Map<String, Attribute> createAttributes() {
+        final int attributeSize = getAttributeValueSize();
+        final Map<String, Attribute> result = new HashMap<>();
+        final int[] sizeValue = new int[1];
+        final int[] typeValue = new int[1];
+        for (int index = 0; index < attributeSize; index++) {
+            final String name = glGetActiveAttrib(mHandle, index, sizeValue, 0, typeValue, 0);
+            final int location = glGetAttribLocation(mHandle, name);
+            final int size = sizeValue[0];
+            final int type = typeValue[0];
+            result.put(name, Attribute.create(name, location, size, type));
+        }
+        return result;
     }
 
     private Map<String, Uniform> createUniforms() {
@@ -37,7 +55,7 @@ public class Program {
             final int location = glGetUniformLocation(mHandle, name);
             final int size = sizeValue[0];
             final int type = typeValue[0];
-            mUniforms.put(name, Uniform.create(name, location, size, type));
+            result.put(name, Uniform.create(name, location, size, type));
         }
         return result;
     }
