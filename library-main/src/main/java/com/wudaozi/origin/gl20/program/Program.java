@@ -39,7 +39,11 @@ public class Program {
             final int type = typeValue[0];
             mUniforms.put(name, Uniform.create(name, location, size, type));
         }
-        return null;
+        return result;
+    }
+
+    public <T extends Uniform> T findUniformByName(String name) {
+        return null == mUniforms ? null : (T) mUniforms.get(name);
     }
 
     public void use() {
