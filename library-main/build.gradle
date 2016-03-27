@@ -2,11 +2,14 @@ apply plugin: 'com.android.library'
 //apply plugin: 'maven'
 apply plugin: 'maven'
 
-group='com.yunzhongtianjing'
+group = 'com.yunzhongtianjing'
 
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
+
+    lintOptions { abortOnError false }
+
 
     defaultConfig {
         minSdkVersion 15
@@ -22,7 +25,7 @@ android {
     }
 }
 
-configurations{
+configurations {
     compile.extendsFrom coder
 }
 
@@ -48,7 +51,7 @@ preBuild {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url:mavenLocal().url)
+            repository(url: mavenLocal().url)
             pom.version = '1.0.0-SNAPSHOT'
             pom.artifactId = 'wudaozi'
         }

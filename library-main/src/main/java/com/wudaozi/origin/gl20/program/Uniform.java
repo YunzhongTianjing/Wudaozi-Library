@@ -82,10 +82,10 @@ public abstract class Uniform {
         sTypeMap.put(GL_SAMPLER_CUBE, SUBCLASS_SAMPLER3D);
     }
 
-    public String name;
+    public final String name;
 
     @Handle
-    protected final int mHandle;
+    protected final int handle;
 
     /**
      * If the uniform variable being queried is an array, this variable
@@ -98,7 +98,7 @@ public abstract class Uniform {
 
     protected Uniform(String name, int handle, int sizeIfArray) {
         this.name = name;
-        this.mHandle = handle;
+        this.handle = handle;
         this.mSizeIfArray = sizeIfArray;
     }
 
@@ -107,14 +107,10 @@ public abstract class Uniform {
             final Class<? extends Uniform> subUniformClass = (Class<? extends Uniform>) Class.forName(sTypeMap.get(type));
             final Constructor<? extends Uniform> constructor = subUniformClass.getConstructor(String.class,
                     Integer.class, Integer.class);
+            constructor.setAccessible(true);
             return constructor.newInstance(name, handle, sizeIfArray);
         } catch (Exception e) {
             throw new WudaoziException(e);
         }
     }
-
-    //    final void ensureLegality(int valueArraySize) {
-//        if (0 != valueArraySize % mComponentSize || valueArraySize / mComponentSize != mSizeIfArray)
-//            throw new WudaoziException("Array size{%s} doesn't match {%s}!", valueArraySize / mComponentSize, mSizeIfArray);
-//    }
 }

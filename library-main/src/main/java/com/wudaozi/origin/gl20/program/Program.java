@@ -1,6 +1,7 @@
 package com.wudaozi.origin.gl20.program;
 
 import com.wudaozi.exception.WudaoziException;
+import com.wudaozi.origin.OpenGLObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,66 +11,54 @@ import static android.opengl.GLES20.*;
 /**
  * Created by yunzhongtianjing on 16/3/14.
  */
-public class Program {
+public class Program extends OpenGLObject {
     private final Shader.VertexShader mVertexShader;
     private final Shader.FragmentShader mFragmentShader;
 
-    private int mHandle;
-    private Map<String, Uniform> mUniforms;
+    private final Map<String, Uniform> mUniforms = new HashMap<>();
 
-    private Map<String, Attribute> mAttributes;
+    private final Map<String, Attribute> mAttributes = new HashMap<>();
 
     public Program(String vertexShaderCode, String fragmentShaderCode) {
         this.mVertexShader = new Shader.VertexShader(vertexShaderCode);
         this.mFragmentShader = new Shader.FragmentShader(fragmentShaderCode);
     }
 
-    public void initialize() {
-        mHandle = getHandle();
-        mUniforms = createUniforms();
-        mAttributes = createAttributes();
-    }
-
-    private Map<String, Attribute> createAttributes() {
+    private void initializeAttributes(int handle) {
         final int attributeSize = getAttributeValueSize();
-        final Map<String, Attribute> result = new HashMap<>();
         final int[] sizeValue = new int[1];
         final int[] typeValue = new int[1];
         for (int index = 0; index < attributeSize; index++) {
-            final String name = glGetActiveAttrib(mHandle, index, sizeValue, 0, typeValue, 0);
-            final int location = glGetAttribLocation(mHandle, name);
+            final String name = glGetActiveAttrib(handle, index, sizeValue, 0, typeValue, 0);
+            final int location = glGetAttribLocation(handle, name);
             final int size = sizeValue[0];
             final int type = typeValue[0];
-            result.put(name, Attribute.create(name, location, size, type));
+            mAttributes.put(name, Attribute.create(name, location, size, type));
         }
-        return result;
     }
 
-    private Map<String, Uniform> createUniforms() {
+    private void initializeUniforms(int handle) {
         final int uniformSize = getUniformValueSize();
         final int[] sizeValue = new int[1];
         final int[] typeValue = new int[1];
-        final Map<String, Uniform> result = new HashMap<>();
         for (int index = 0; index < uniformSize; index++) {
-            final String name = glGetActiveUniform(mHandle, index, sizeValue, 0, typeValue, 0);
-            final int location = glGetUniformLocation(mHandle, name);
+            final String name = glGetActiveUniform(handle, index, sizeValue, 0, typeValue, 0);
+            final int location = glGetUniformLocation(handle, name);
             final int size = sizeValue[0];
             final int type = typeValue[0];
-            result.put(name, Uniform.create(name, location, size, type));
+            mUniforms.put(name, Uniform.create(name, location, size, type));
         }
-        return result;
     }
 
     public <T extends Uniform> T findUniformByName(String name) {
-        return null == mUniforms ? null : (T) mUniforms.get(name);
+        return (T) mUniforms.get(name);
     }
 
-    public void use() {
-        //TODO useDataSource().withFormat()
-        glUseProgram(mHandle);
+    public Attribute findAttributeByName(String name) {
+        return mAttributes.get(name);
     }
 
-    private int getHandle() {
+    private int createProgram() {
         final int handle = glCreateProgram();
         if (handle == 0) throw new WudaoziException("Program create fail");
         glAttachShader(handle, mVertexShader.getHandle());
@@ -109,5 +98,28 @@ public class Program {
     private int getProgramParam(int paramType) {
         glGetProgramiv(mHandle, paramType, mReturnValue, 0);
         return mReturnValue[0];
+    }
+
+    @Override
+    protected int generate() {
+        final int handle = createProgram();
+        initializeUniforms(handle);
+        initializeAttributes(handle);
+        return handle;
+    }
+
+    @Override
+    public void delete() {
+        glDeleteProgram(mHandle);
+    }
+
+    @Override
+    public void bind() {
+        glUseProgram(mHandle);
+    }
+
+    @Override
+    public void unbind() {
+        glUseProgram(0);
     }
 }

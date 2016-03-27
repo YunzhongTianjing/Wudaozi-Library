@@ -3,6 +3,7 @@ package com.wudaozi.origin.gl20.buffer;
 
 import com.wudaozi.exception.WudaoziException;
 import com.wudaozi.log.WLog;
+import com.wudaozi.origin.BufferElementType;
 import com.wudaozi.origin.OpenGLObject;
 import com.wudaozi.origin.gl20.DeviceSupport;
 
@@ -17,34 +18,6 @@ import static android.opengl.GLES20.*;
  * Created by yunzhongtianjing on 16/2/27.
  */
 public class BufferObject extends OpenGLObject {
-    private enum BufferElementType {
-        SHORT(BufferElementType.BYTES_PER_SHORT),
-        INT(BufferElementType.BYTES_PER_INT),
-        FLOAT(BufferElementType.BYTES_PER_FLOAT);
-
-        private static final int BYTES_PER_SHORT = Short.SIZE / Byte.SIZE;
-        private static final int BYTES_PER_INT = Integer.SIZE / Byte.SIZE;
-        private static final int BYTES_PER_FLOAT = Float.SIZE / Byte.SIZE;
-        final int byteSize;
-
-        BufferElementType(int byteSize) {
-            this.byteSize = byteSize;
-        }
-
-        static BufferElementType getByBuffer(Buffer buffer) {
-            if (buffer instanceof IntBuffer) {
-                return INT;
-            } else if (buffer instanceof ShortBuffer) {
-                return SHORT;
-            } else if (buffer instanceof FloatBuffer) {
-                return FLOAT;
-            } else {
-                throw new WudaoziException("Parameter buffer{%s} is not valid", buffer);
-            }
-        }
-
-    }
-
     private enum Usage {
         /**
          * The data store contents will be specified once by the application,
@@ -107,6 +80,10 @@ public class BufferObject extends OpenGLObject {
         bind();
         glBufferData(mBoundPoint, data.flip().limit() * mElementType.byteSize, data, usage.glValue);
         unbind();
+    }
+
+    public BufferElementType getElementType() {
+        return mElementType;
     }
 
     void superModifyData(Buffer newData, int start, int end) {
