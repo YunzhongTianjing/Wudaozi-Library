@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-//apply plugin: 'maven'
 apply plugin: 'maven'
 
 group = 'com.yunzhongtianjing'
@@ -36,7 +35,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
 }
 
-task generateWudaoziCode(type: JavaCompile, group: 'build', description: 'Generates the QueryDSL query types') {
+task injectWudaoziAPICoder(type: JavaCompile, group: 'build', description: 'Generates the QueryDSL query types') {
     options.compilerArgs = [
             "-proc:only",
             "-processor", "com.wudaozi.coder.UniformClassCoder"
@@ -44,7 +43,7 @@ task generateWudaoziCode(type: JavaCompile, group: 'build', description: 'Genera
 }
 
 preBuild {
-    dependsOn generateWudaoziCode
+    dependsOn injectWudaoziAPICoder
 }
 
 
