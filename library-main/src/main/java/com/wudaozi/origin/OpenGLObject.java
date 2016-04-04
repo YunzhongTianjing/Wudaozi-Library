@@ -4,12 +4,17 @@ package com.wudaozi.origin;
  * Created by yunzhongtianjing on 16/2/23.
  */
 public abstract class OpenGLObject {
-    protected final int mHandle;
-    public OpenGLObject(){
-        mHandle = generate();
+    public final int handle;
+
+    public OpenGLObject(Object... params) {
+        handle = generate(params);
     }
-    protected abstract int generate();
+
+    protected abstract int generate(Object... params);
+
     public abstract void delete();
+
     public abstract void bind();
+
     public abstract void unbind();
 }

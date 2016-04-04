@@ -7,13 +7,13 @@ import static android.opengl.GLES20.*;
 /**
  * Created by yunhun.fyy on 2016/2/21.
  */
-public class FrameBuffer extends OpenGLObject{
+public class FrameBuffer extends OpenGLObject {
 
 
     private static FrameBuffer mCurrentFrameBuffer;
 
     @Override
-    protected int generate() {
+    protected int generate(Object... params) {
         final int[] handles = new int[1];
         glGenFramebuffers(1, handles, 0);
         return handles[0];
@@ -21,7 +21,7 @@ public class FrameBuffer extends OpenGLObject{
 
     @Override
     public void delete() {
-        glDeleteFramebuffers(0,new int[]{mHandle},0);
+        glDeleteFramebuffers(0, new int[]{handle}, 0);
     }
 
     public static FrameBuffer getCurrentFrameBuffer() {
@@ -30,7 +30,7 @@ public class FrameBuffer extends OpenGLObject{
 
     @Override
     public void bind() {
-        glBindFramebuffer(GL_FRAMEBUFFER, mHandle);
+        glBindFramebuffer(GL_FRAMEBUFFER, handle);
         mCurrentFrameBuffer = this;
     }
 

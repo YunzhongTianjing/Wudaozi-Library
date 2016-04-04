@@ -27,19 +27,4 @@ public enum BufferElementType {
         this.byteSize = byteSize;
         this.glType = glType;
     }
-
-    public static BufferElementType getByBuffer(Buffer buffer) {
-        if (buffer instanceof IntBuffer) {
-            return INT;
-        } else if (buffer instanceof ShortBuffer) {
-            return SHORT;
-        } else if (buffer instanceof FloatBuffer) {
-            return FLOAT;
-        } else if (buffer instanceof ByteBuffer) {
-            return BYTE;
-        } else {
-            throw new WudaoziException("Parameter buffer{%s} is not valid", buffer);
-        }
-    }
-
 }

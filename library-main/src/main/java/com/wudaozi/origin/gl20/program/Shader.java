@@ -1,38 +1,39 @@
 package com.wudaozi.origin.gl20.program;
 
 import com.wudaozi.exception.WudaoziException;
+import com.wudaozi.origin.OpenGLObject;
 
 import static android.opengl.GLES20.*;
 
 /**
  * Created by yunzhongtianjing on 16/3/14.
  */
-class Shader {
-    private final int mType;
-    private String mSourceCode;
-    private int mHandle;
+class Shader extends OpenGLObject {
 
-    Shader(int mType, String sourceCode) {
-        this.mType = mType;
-        this.mSourceCode = sourceCode;
-    }
-
-    int getHandle() {
-        if (0 == mHandle) {
-            this.mHandle = loadShader();
-            this.mSourceCode = null;
-        }
-        return mHandle;
+    Shader(int type, String sourceCode) {
+        super(type, sourceCode);
     }
 
     private final int[] mReturnValues = new int[1];
 
-    private int loadShader() {
-        final int handle = glCreateShader(mType);
+    boolean isCompiled() {
+        glGetShaderiv(handle, GL_COMPILE_STATUS, mReturnValues, 0);
+        return mReturnValues[0] == GL_TRUE;
+    }
+
+    boolean isDeleted() {
+        glGetShaderiv(handle, GL_DELETE_STATUS, mReturnValues, 0);
+        return mReturnValues[0] == GL_TRUE;
+    }
+
+    @Override
+    protected int generate(Object... params) {
+        final int type = (Integer) params[0];
+        final String sourceCode = (String) params[1];
+        final int handle = glCreateShader(type);
         if (handle == 0)
             throw new WudaoziException("%s create fail", this.getClass().getName());
-        glShaderSource(handle, mSourceCode);
-        mSourceCode = null;
+        glShaderSource(handle, sourceCode);
         glCompileShader(handle);
         if (!isCompiled()) {
             final String log = glGetShaderInfoLog(handle);
@@ -42,15 +43,21 @@ class Shader {
         return handle;
     }
 
-    boolean isCompiled() {
-        glGetShaderiv(mHandle, GL_COMPILE_STATUS, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+    @Override
+    public void delete() {
+        glDeleteShader(handle);
     }
 
-    boolean isDeleted() {
-        glGetShaderiv(mHandle, GL_DELETE_STATUS, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+    @Override
+    public void bind() {
+
     }
+
+    @Override
+    public void unbind() {
+
+    }
+
 
     static class VertexShader extends Shader {
         VertexShader(String sourceCode) {

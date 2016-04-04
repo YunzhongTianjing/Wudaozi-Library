@@ -88,13 +88,12 @@ public class Attribute {
         private final int mStrideInBytes;
         private final BufferElementType mType;
 
-        private DataSource(Buffer buffer, BufferObject bufferObject, List<Attribute> attributes,
-                           boolean normalized) {
+        private DataSource(Buffer buffer, BufferObject bufferObject, BufferElementType elementType,
+                           List<Attribute> attributes, boolean normalized) {
             this.mBuffer = buffer;
             this.mBufferObject = bufferObject;
             this.mNormalized = normalized;
-            this.mType = null != mBuffer ?
-                    BufferElementType.getByBuffer(mBuffer) : mBufferObject.getElementType();
+            this.mType = elementType;
             this.mAttributesWrappers = wrapAttributes(attributes, mType);
             this.mStrideInBytes = calculateStride(mAttributesWrappers);
         }
@@ -140,16 +139,19 @@ public class Attribute {
             private boolean mNormalize;
             private final Buffer mBuffer;
             private final BufferObject mBufferObject;
+            private final BufferElementType mElementType;
             private final List<Attribute> attributes = new ArrayList<>();
 
-            public Builder(Buffer source) {
+            public Builder(Buffer source, BufferElementType elementType) {
                 this.mBuffer = source;
                 this.mBufferObject = null;
+                this.mElementType = elementType;
             }
 
             public Builder(BufferObject source) {
                 this.mBuffer = null;
                 this.mBufferObject = source;
+                this.mElementType = source.elementType;
             }
 
             public Builder normalize(boolean normalize) {
@@ -158,7 +160,7 @@ public class Attribute {
             }
 
             public DataSource build() {
-                return new DataSource(mBuffer, mBufferObject, attributes, mNormalize);
+                return new DataSource(mBuffer, mBufferObject, mElementType, attributes, mNormalize);
             }
 
             public Builder assign(Attribute attribute) {

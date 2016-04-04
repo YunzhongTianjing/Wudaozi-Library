@@ -12,19 +12,18 @@ import static android.opengl.GLES20.*;
  * Created by yunzhongtianjing on 16/3/14.
  */
 public class Program extends OpenGLObject {
-    private final Shader.VertexShader mVertexShader;
-    private final Shader.FragmentShader mFragmentShader;
+    private Shader.VertexShader mVertexShader;
+    private Shader.FragmentShader mFragmentShader;
 
     private final Map<String, Uniform> mUniforms = new HashMap<>();
 
     private final Map<String, Attribute> mAttributes = new HashMap<>();
 
     public Program(String vertexShaderCode, String fragmentShaderCode) {
-        this.mVertexShader = new Shader.VertexShader(vertexShaderCode);
-        this.mFragmentShader = new Shader.FragmentShader(fragmentShaderCode);
+        super(vertexShaderCode, fragmentShaderCode);
     }
 
-    private void initializeAttributes(int handle) {
+    private void initializeAttributes() {
         final int attributeSize = getAttributeValueSize();
         final int[] sizeValue = new int[1];
         final int[] typeValue = new int[1];
@@ -37,7 +36,7 @@ public class Program extends OpenGLObject {
         }
     }
 
-    private void initializeUniforms(int handle) {
+    private void initializeUniforms() {
         final int uniformSize = getUniformValueSize();
         final int[] sizeValue = new int[1];
         final int[] typeValue = new int[1];
@@ -56,20 +55,6 @@ public class Program extends OpenGLObject {
 
     public Attribute findAttributeByName(String name) {
         return mAttributes.get(name);
-    }
-
-    private int createProgram() {
-        final int handle = glCreateProgram();
-        if (handle == 0) throw new WudaoziException("Program create fail");
-        glAttachShader(handle, mVertexShader.getHandle());
-        glAttachShader(handle, mFragmentShader.getHandle());
-        glLinkProgram(handle);
-        if (!isLinked()) {
-            final String log = glGetProgramInfoLog(handle);
-            glDeleteProgram(handle);
-            throw new WudaoziException("Program link error-%s", log);
-        }
-        return handle;
     }
 
     boolean isLinked() {
@@ -96,26 +81,41 @@ public class Program extends OpenGLObject {
     private final int[] mReturnValue = new int[1];
 
     private int getProgramParam(int paramType) {
-        glGetProgramiv(mHandle, paramType, mReturnValue, 0);
+        glGetProgramiv(handle, paramType, mReturnValue, 0);
         return mReturnValue[0];
     }
 
     @Override
-    protected int generate() {
-        final int handle = createProgram();
-        initializeUniforms(handle);
-        initializeAttributes(handle);
+    protected int generate(Object... params) {
+        final String vertexShaderCode = (String) params[0];
+        final String fragmentShaderCode = (String) params[1];
+
+        final int handle = glCreateProgram();
+        if (handle == 0) throw new WudaoziException("Program create fail");
+
+        this.mVertexShader = new Shader.VertexShader(vertexShaderCode);
+        this.mFragmentShader = new Shader.FragmentShader(fragmentShaderCode);
+        initializeUniforms();
+        initializeAttributes();
+        glAttachShader(handle, mVertexShader.handle);
+        glAttachShader(handle, mFragmentShader.handle);
+        glLinkProgram(handle);
+        if (!isLinked()) {
+            final String log = glGetProgramInfoLog(handle);
+            glDeleteProgram(handle);
+            throw new WudaoziException("Program link error-%s", log);
+        }
         return handle;
     }
 
     @Override
     public void delete() {
-        glDeleteProgram(mHandle);
+        glDeleteProgram(handle);
     }
 
     @Override
     public void bind() {
-        glUseProgram(mHandle);
+        glUseProgram(handle);
     }
 
     @Override

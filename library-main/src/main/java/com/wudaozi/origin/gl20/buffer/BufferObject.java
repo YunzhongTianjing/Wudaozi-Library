@@ -17,7 +17,7 @@ import static android.opengl.GLES20.*;
 /**
  * Created by yunzhongtianjing on 16/2/27.
  */
-public class BufferObject extends OpenGLObject {
+public abstract class BufferObject extends OpenGLObject {
     private enum Usage {
         /**
          * The data store contents will be specified once by the application,
@@ -41,32 +41,48 @@ public class BufferObject extends OpenGLObject {
         }
     }
 
-    protected final int mBoundPoint;
+    private final int mBoundPoint;
 
-    private BufferElementType mElementType;
-    private Usage mUsage;
+    public final BufferElementType elementType;
+    public final Usage usage;
 
-    private BufferObject(int boundPoint) {
-        super();
+    /**
+     * @param usage Optimisation hint for OpenGL(may not so reliable),see
+     *              {@link com.wudaozi.origin.gl20.buffer.BufferObject.Usage}Ï
+     */
+    protected BufferObject(int boundPoint, Buffer source, BufferElementType elementType, Usage usage) {
+        super(boundPoint, source, elementType, usage);
         this.mBoundPoint = boundPoint;
+        this.elementType = elementType;
+        this.usage = usage;
     }
 
+    private final int[] returnValues = new int[1];
 
     @Override
-    protected int generate() {
-        final int[] buffers = new int[1];
-        glGenBuffers(0, buffers, 0);
-        return buffers[0];
+    protected int generate(Object... params) {
+        final int boundPoint = (Integer) params[0];
+        final Buffer source = (Buffer) params[1];
+        final BufferElementType elementType = (BufferElementType) params[2];
+        final Usage usage = (Usage) params[3];
+
+        glGenBuffers(0, returnValues, 0);
+        final int handle = returnValues[0];
+        glBindBuffer(boundPoint, handle);
+        glBufferData(boundPoint, source.flip().limit() * this.elementType.byteSize, source, usage.glValue);
+        glBindBuffer(boundPoint, 0);
+
+        return handle;
     }
 
     @Override
     public void delete() {
-        glDeleteBuffers(0, new int[]{mHandle}, 0);
+        glDeleteBuffers(0, new int[]{handle}, 0);
     }
 
     @Override
     public void bind() {
-        glBindBuffer(mBoundPoint, mHandle);
+        glBindBuffer(mBoundPoint, handle);
     }
 
     @Override
@@ -74,29 +90,13 @@ public class BufferObject extends OpenGLObject {
         glBindBuffer(mBoundPoint, 0);
     }
 
-    void superSetData(Buffer data, Usage usage) {
-        this.mElementType = BufferElementType.getByBuffer(data);
-        this.mUsage = usage;
-        bind();
-        glBufferData(mBoundPoint, data.flip().limit() * mElementType.byteSize, data, usage.glValue);
-        unbind();
-    }
 
-    public BufferElementType getElementType() {
-        return mElementType;
-    }
-
-    void superModifyData(Buffer newData, int start, int end) {
-        final BufferElementType newElementType = BufferElementType.getByBuffer(newData);
-        if (newElementType != mElementType)
-            throw new WudaoziException("New data type{%s} mismatches origin data type{%s}!",
-                    newElementType.name(), mElementType.name());
-
-        if (Usage.STATIC_DRAW == mUsage || Usage.STREAM_DRAW == mUsage)
+    public void modifyData(Buffer newData, int start, int end) {
+        if (Usage.STATIC_DRAW == usage || Usage.STREAM_DRAW == usage)
             WLog.w("The buffer is used for %s,for efficiency,its content should be specified only once and shouldn't be modified",
-                    mUsage.name());
-        start = start * mElementType.byteSize;
-        end = end * mElementType.byteSize;
+                    usage.name());
+        start = start * elementType.byteSize;
+        end = end * elementType.byteSize;
         bind();
         glBufferSubData(mBoundPoint, start, end, newData);
         unbind();
@@ -104,65 +104,16 @@ public class BufferObject extends OpenGLObject {
 
 
     public static class ArrayBufferObject extends BufferObject {
-        public ArrayBufferObject() {
-            super(GL_ARRAY_BUFFER);
-        }
-
-        /**
-         * @param usage Optimisation hint for OpenGL(may not so reliable),see
-         *              {@link com.wudaozi.origin.gl20.buffer.BufferObject.Usage}
-         */
-        public void setData(FloatBuffer data, Usage usage) {
-            superSetData(data, usage);
-        }
-
-        public void setData(FloatBuffer data) {
-            setData(data, Usage.STATIC_DRAW);
-        }
-
-        public void modifyData(FloatBuffer newData, int start, int end) {
-            superModifyData(newData, start, end);
+        public ArrayBufferObject(Buffer data, BufferElementType dataElementType, Usage usage) {
+            super(GL_ARRAY_BUFFER, data, dataElementType, usage);
         }
     }
 
     public static class IndexBufferObject extends BufferObject {
-        public IndexBufferObject() {
-            super(GL_ELEMENT_ARRAY_BUFFER);
-        }
-
-        /**
-         * @param usage Optimisation hint for OpenGL(may not so reliable),see
-         *              {@link com.wudaozi.origin.gl20.buffer.BufferObject.Usage}
-         */
-        public void setData(ShortBuffer data, Usage usage) {
-            superSetData(data, usage);
-        }
-
-        public void setData(ShortBuffer data) {
-            setData(data, Usage.STATIC_DRAW);
-        }
-
-        public void modifyData(ShortBuffer newData, int start, int end) {
-            superModifyData(newData, start, end);
-        }
-
-
-        /**
-         * @param usage Optimisation hint for OpenGL(may not so reliable),see
-         *              {@link com.wudaozi.origin.gl20.buffer.BufferObject.Usage}Ï
-         */
-        public void setData(IntBuffer data, Usage usage) {
-            if (!isSupportIntegerBuffer())
-                throw new WudaoziException("INTEGER Buffer for IBO is not supported with this device");
-            superSetData(data, usage);
-        }
-
-        public void setData(IntBuffer data) {
-            setData(data, Usage.STATIC_DRAW);
-        }
-
-        public void modifyData(IntBuffer newData, int start, int end) {
-            superModifyData(newData, start, end);
+        public IndexBufferObject(Buffer data, BufferElementType dataElementType, Usage usage) {
+            super(GL_ELEMENT_ARRAY_BUFFER, data, dataElementType, usage);
+            if (!isSupportIntegerBuffer() && BufferElementType.INT == dataElementType)
+                throw new WudaoziException("IBO can't support Integer");
         }
 
         public static boolean isSupportIntegerBuffer() {
