@@ -27,4 +27,16 @@ public enum BufferElementType {
         this.byteSize = byteSize;
         this.glType = glType;
     }
+
+    public static BufferElementType getElementTypeByBuffer(Buffer buffer) {
+        if (buffer instanceof ShortBuffer)
+            return SHORT;
+        else if (buffer instanceof IntBuffer)
+            return INT;
+        else if (buffer instanceof FloatBuffer)
+            return FLOAT;
+        else if (buffer instanceof ByteBuffer)
+            return BYTE;
+        else throw new WudaoziException("Unsupported buffer{%s}", buffer);
+    }
 }

@@ -73,11 +73,15 @@ public class Attribute {
     public static class DataSource {
         private static class AttributeWrapper {
             private final int mOffsetInBytes;
+            private final int mOffsetInElements;
             private final Attribute mCore;
+            private final int mSizeInBytes;
 
-            private AttributeWrapper(Attribute attribute, int offsetInBytes) {
+            private AttributeWrapper(Attribute attribute, int offsetInBytes, int offsetInElements, int sizeInBytes) {
                 this.mCore = attribute;
                 this.mOffsetInBytes = offsetInBytes;
+                this.mOffsetInElements = offsetInElements;
+                this.mSizeInBytes = sizeInBytes;
             }
         }
 
@@ -101,10 +105,13 @@ public class Attribute {
         private List<AttributeWrapper> wrapAttributes(List<Attribute> attributes, BufferElementType elementType) {
             final List<AttributeWrapper> result = new ArrayList<>(attributes.size());
             int offsetInBytes = 0;
+            int offsetInElements = 0;
 
             for (Attribute attribute : attributes) {
-                result.add(new AttributeWrapper(attribute, offsetInBytes));
-                offsetInBytes += attribute.type.mComponentNum * elementType.byteSize;
+                final int sizeInBytes = attribute.type.mComponentNum * elementType.byteSize;
+                result.add(new AttributeWrapper(attribute, offsetInBytes, offsetInElements, sizeInBytes));
+                offsetInBytes += sizeInBytes;
+                offsetInElements += attribute.type.mComponentNum;
             }
             return result;
         }
@@ -112,7 +119,7 @@ public class Attribute {
         private int calculateStride(List<AttributeWrapper> attributesWrappers) {
             int stride = 0;
             for (AttributeWrapper wrapper : attributesWrappers)
-                stride += wrapper.mOffsetInBytes;
+                stride += wrapper.mSizeInBytes;
             return stride;
         }
 
@@ -123,7 +130,7 @@ public class Attribute {
                 if (null != mBuffer) {
                     glVertexAttribPointer(
                             attribute.handle, attribute.type.mComponentNum,//Destination(attribute) params
-                            mType.glType, mNormalized, mStrideInBytes, mBuffer.position(wrapper.mOffsetInBytes)//Source(buffer) params
+                            mType.glType, mNormalized, mStrideInBytes, mBuffer.position(wrapper.mOffsetInElements)//Source(buffer) params
                     );
                 } else {
                     mBufferObject.bind();
@@ -142,10 +149,10 @@ public class Attribute {
             private final BufferElementType mElementType;
             private final List<Attribute> attributes = new ArrayList<>();
 
-            public Builder(Buffer source, BufferElementType elementType) {
+            public Builder(Buffer source) {
                 this.mBuffer = source;
                 this.mBufferObject = null;
-                this.mElementType = elementType;
+                this.mElementType = BufferElementType.getElementTypeByBuffer(source);
             }
 
             public Builder(BufferObject source) {

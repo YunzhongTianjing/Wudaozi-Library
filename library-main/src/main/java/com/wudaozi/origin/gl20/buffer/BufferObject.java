@@ -18,7 +18,7 @@ import static android.opengl.GLES20.*;
  * Created by yunzhongtianjing on 16/2/27.
  */
 public abstract class BufferObject extends OpenGLObject {
-    private enum Usage {
+    public enum Usage {
         /**
          * The data store contents will be specified once by the application,
          * and used many times as the source for GL drawing commands
@@ -50,10 +50,10 @@ public abstract class BufferObject extends OpenGLObject {
      * @param usage Optimisation hint for OpenGL(may not so reliable),see
      *              {@link com.wudaozi.origin.gl20.buffer.BufferObject.Usage}Ï
      */
-    protected BufferObject(int boundPoint, Buffer source, BufferElementType elementType, Usage usage) {
-        super(boundPoint, source, elementType, usage);
+    protected BufferObject(int boundPoint, Buffer source, Usage usage) {
+        super(boundPoint, source, usage);
         this.mBoundPoint = boundPoint;
-        this.elementType = elementType;
+        this.elementType = BufferElementType.getElementTypeByBuffer(source);
         this.usage = usage;
     }
 
@@ -61,13 +61,13 @@ public abstract class BufferObject extends OpenGLObject {
     protected int generate(Object... params) {
         final int boundPoint = (Integer) params[0];
         final Buffer source = (Buffer) params[1];
-        final BufferElementType elementType = (BufferElementType) params[2];
-        final Usage usage = (Usage) params[3];
+        final Usage usage = (Usage) params[2];
 
-        glGenBuffers(0, returnValues, 0);
+        glGenBuffers(1, returnValues, 0);
         final int handle = returnValues[0];
         glBindBuffer(boundPoint, handle);
-        glBufferData(boundPoint, source.flip().limit() * this.elementType.byteSize, source, usage.glValue);
+        glBufferData(boundPoint, source.capacity() * BufferElementType.getElementTypeByBuffer(source).byteSize,
+                source, usage.glValue);
         glBindBuffer(boundPoint, 0);
 
         return handle;
@@ -101,16 +101,16 @@ public abstract class BufferObject extends OpenGLObject {
     }
 
 
-    public static class ArrayBufferObject extends BufferObject {
-        public ArrayBufferObject(Buffer data, BufferElementType dataElementType, Usage usage) {
-            super(GL_ARRAY_BUFFER, data, dataElementType, usage);
+    public static class VBO extends BufferObject {
+        public VBO(Buffer data, Usage usage) {
+            super(GL_ARRAY_BUFFER, data, usage);
         }
     }
 
-    public static class IndexBufferObject extends BufferObject {
-        public IndexBufferObject(Buffer data, BufferElementType dataElementType, Usage usage) {
-            super(GL_ELEMENT_ARRAY_BUFFER, data, dataElementType, usage);
-            if (!isSupportIntegerBuffer() && BufferElementType.INT == dataElementType)
+    public static class IBO extends BufferObject {
+        public IBO(Buffer data, Usage usage) {
+            super(GL_ELEMENT_ARRAY_BUFFER, data, usage);
+            if (!isSupportIntegerBuffer() && BufferElementType.INT == elementType)
                 throw new WudaoziException("IBO can't support Integer");
         }
 

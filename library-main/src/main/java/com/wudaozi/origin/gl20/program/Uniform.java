@@ -105,8 +105,8 @@ public abstract class Uniform {
     static Uniform create(String name, int handle, int sizeIfArray, int type) {
         try {
             final Class<? extends Uniform> subUniformClass = (Class<? extends Uniform>) Class.forName(sTypeMap.get(type));
-            final Constructor<? extends Uniform> constructor = subUniformClass.getConstructor(String.class,
-                    Integer.class, Integer.class);
+            final Constructor<? extends Uniform> constructor = subUniformClass.getDeclaredConstructor(String.class,
+                    int.class, int.class);
             constructor.setAccessible(true);
             return constructor.newInstance(name, handle, sizeIfArray);
         } catch (Exception e) {
