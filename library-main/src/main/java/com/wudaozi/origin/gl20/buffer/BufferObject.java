@@ -88,15 +88,17 @@ public abstract class BufferObject extends OpenGLObject {
         glBindBuffer(mBoundPoint, 0);
     }
 
-
-    public void modifyData(Buffer newData, int start, int end) {
+    /**
+     * [startIndex,startIndex+size-1]
+     */
+    public void modifyData(Buffer newData, int startIndex, int size) {
         if (Usage.STATIC_DRAW == usage || Usage.STREAM_DRAW == usage)
             WLog.w("The buffer is used for %s,for efficiency,its content should be specified only once and shouldn't be modified",
                     usage.name());
-        start = start * elementType.byteSize;
-        end = end * elementType.byteSize;
+        startIndex = startIndex * elementType.byteSize;
+        size = size * elementType.byteSize;
         bind();
-        glBufferSubData(mBoundPoint, start, end, newData);
+        glBufferSubData(mBoundPoint, startIndex, size, newData);
         unbind();
     }
 
