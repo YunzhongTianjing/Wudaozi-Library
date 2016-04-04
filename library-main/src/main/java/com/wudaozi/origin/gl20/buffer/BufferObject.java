@@ -57,8 +57,6 @@ public abstract class BufferObject extends OpenGLObject {
         this.usage = usage;
     }
 
-    private final int[] returnValues = new int[1];
-
     @Override
     protected int generate(Object... params) {
         final int boundPoint = (Integer) params[0];

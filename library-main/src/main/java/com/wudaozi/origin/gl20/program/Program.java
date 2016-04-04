@@ -15,38 +15,45 @@ public class Program extends OpenGLObject {
     private Shader.VertexShader mVertexShader;
     private Shader.FragmentShader mFragmentShader;
 
-    private final Map<String, Uniform> mUniforms = new HashMap<>();
+    private Map<String, Uniform> mUniforms;
 
-    private final Map<String, Attribute> mAttributes = new HashMap<>();
+    private Map<String, Attribute> mAttributes;
 
     public Program(String vertexShaderCode, String fragmentShaderCode) {
         super(vertexShaderCode, fragmentShaderCode);
     }
 
-    private void initializeAttributes() {
-        final int attributeSize = getAttributeValueSize();
+    private Map<String, Attribute> initializeAttributes(int handle) {
+        glGetProgramiv(handle, GL_ACTIVE_ATTRIBUTES, returnValues, 0);
+        final int attributeSize = returnValues[0];
         final int[] sizeValue = new int[1];
         final int[] typeValue = new int[1];
+        final Map<String, Attribute> attributes = new HashMap<>(attributeSize);
+
         for (int index = 0; index < attributeSize; index++) {
             final String name = glGetActiveAttrib(handle, index, sizeValue, 0, typeValue, 0);
             final int location = glGetAttribLocation(handle, name);
             final int size = sizeValue[0];
             final int type = typeValue[0];
-            mAttributes.put(name, Attribute.create(name, location, size, type));
+            attributes.put(name, Attribute.create(name, location, size, type));
         }
+        return attributes;
     }
 
-    private void initializeUniforms() {
-        final int uniformSize = getUniformValueSize();
+    private Map<String, Uniform> initializeUniforms(int handle) {
+        glGetProgramiv(handle, GL_ACTIVE_UNIFORMS, returnValues, 0);
+        final int uniformSize = returnValues[0];
         final int[] sizeValue = new int[1];
         final int[] typeValue = new int[1];
+        final Map<String, Uniform> uniforms = new HashMap<>(uniformSize);
         for (int index = 0; index < uniformSize; index++) {
             final String name = glGetActiveUniform(handle, index, sizeValue, 0, typeValue, 0);
             final int location = glGetUniformLocation(handle, name);
             final int size = sizeValue[0];
             final int type = typeValue[0];
-            mUniforms.put(name, Uniform.create(name, location, size, type));
+            uniforms.put(name, Uniform.create(name, location, size, type));
         }
+        return uniforms;
     }
 
     public <T extends Uniform> T findUniformByName(String name) {
@@ -78,11 +85,10 @@ public class Program extends OpenGLObject {
         return getProgramParam(GL_ACTIVE_ATTRIBUTES);
     }
 
-    private final int[] mReturnValue = new int[1];
 
     private int getProgramParam(int paramType) {
-        glGetProgramiv(handle, paramType, mReturnValue, 0);
-        return mReturnValue[0];
+        glGetProgramiv(handle, paramType, returnValues, 0);
+        return returnValues[0];
     }
 
     @Override
@@ -95,16 +101,18 @@ public class Program extends OpenGLObject {
 
         this.mVertexShader = new Shader.VertexShader(vertexShaderCode);
         this.mFragmentShader = new Shader.FragmentShader(fragmentShaderCode);
-        initializeUniforms();
-        initializeAttributes();
         glAttachShader(handle, mVertexShader.handle);
         glAttachShader(handle, mFragmentShader.handle);
         glLinkProgram(handle);
-        if (!isLinked()) {
+        glGetProgramiv(handle, GL_LINK_STATUS, returnValues, 0);
+        if (GL_FALSE == returnValues[0]) {
             final String log = glGetProgramInfoLog(handle);
             glDeleteProgram(handle);
             throw new WudaoziException("Program link error-%s", log);
         }
+
+        this.mUniforms = initializeUniforms(handle);
+        this.mAttributes = initializeAttributes(handle);
         return handle;
     }
 

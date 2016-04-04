@@ -14,28 +14,29 @@ class Shader extends OpenGLObject {
         super(type, sourceCode);
     }
 
-    private final int[] mReturnValues = new int[1];
-
     boolean isCompiled() {
-        glGetShaderiv(handle, GL_COMPILE_STATUS, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+        glGetShaderiv(handle, GL_COMPILE_STATUS, returnValues, 0);
+        return returnValues[0] == GL_TRUE;
     }
 
     boolean isDeleted() {
-        glGetShaderiv(handle, GL_DELETE_STATUS, mReturnValues, 0);
-        return mReturnValues[0] == GL_TRUE;
+        glGetShaderiv(handle, GL_DELETE_STATUS, returnValues, 0);
+        return returnValues[0] == GL_TRUE;
     }
 
     @Override
     protected int generate(Object... params) {
         final int type = (Integer) params[0];
         final String sourceCode = (String) params[1];
+
         final int handle = glCreateShader(type);
         if (handle == 0)
             throw new WudaoziException("%s create fail", this.getClass().getName());
         glShaderSource(handle, sourceCode);
         glCompileShader(handle);
-        if (!isCompiled()) {
+
+        glGetShaderiv(handle, GL_COMPILE_STATUS, returnValues, 0);
+        if (GL_FALSE == returnValues[0]) {
             final String log = glGetShaderInfoLog(handle);
             glDeleteShader(handle);
             throw new WudaoziException("%s compile error-%s", this.getClass().getName(), log);

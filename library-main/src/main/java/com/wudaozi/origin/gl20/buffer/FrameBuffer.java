@@ -14,9 +14,8 @@ public class FrameBuffer extends OpenGLObject {
 
     @Override
     protected int generate(Object... params) {
-        final int[] handles = new int[1];
-        glGenFramebuffers(1, handles, 0);
-        return handles[0];
+        glGenFramebuffers(1, returnValues, 0);
+        return returnValues[0];
     }
 
     @Override

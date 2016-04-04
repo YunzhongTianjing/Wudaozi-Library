@@ -4,6 +4,8 @@ package com.wudaozi.origin;
  * Created by yunzhongtianjing on 16/2/23.
  */
 public abstract class OpenGLObject {
+    protected final int[] returnValues = new int[1];
+
     public final int handle;
 
     public OpenGLObject(Object... params) {
